@@ -13,12 +13,14 @@ class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
     watched = db.Column(db.Boolean)
+    rating = db.Column(db.String(120))
     
     # TODO: add a ratings column to the Movie table
 
     def __init__(self, name):
         self.name = name
         self.watched = False
+        
 
     def __repr__(self):
         return '<Movie %r>' % self.name
@@ -38,7 +40,8 @@ def get_current_watchlist():
 def get_watched_movies():
     # For now, we are just pretending
     # returns the list of movies the user has already watched and crossed off
-    return [ "The Matrix", "The Princess Bride", "Buffy the Vampire Slayer" ]
+    #return [ "The Matrix", "The Princess Bride", "Buffy the Vampire Slayer" ]
+    return Movie.query.filter_by(watched=True).all()
 
 # Create a new route called rate_movie which handles a POST request on /rating-confirmation
 @app.route("/rating-confirmation", methods=['POST'])
@@ -55,6 +58,9 @@ def rate_movie():
         # redirect to homepage, and include error as a query parameter in the URL
         return redirect("/?error=" + error)
 
+    movie.rating = rating
+    db.session.add(rating)
+    db.session.commit()    
     # if we didn't redirect by now, then all is well
     
     # TODO: make a persistent change to the model so that you STORE the rating in the database
@@ -88,7 +94,7 @@ def crossoff_movie():
 def add_movie():
     # look inside the request to figure out what the user typed
     new_movie_name = request.form['new-movie']
-
+    
     # if the user typed nothing at all, redirect and tell them the error
     if (not new_movie_name) or (new_movie_name.strip() == ""):
         error = "Please specify the movie you want to add."
